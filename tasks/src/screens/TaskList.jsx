@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import todayImage from '../../assets/imgs/today.jpg';
@@ -17,6 +18,13 @@ import 'moment/locale/pt-br';
 import commonStyles from '../commonStyles';
 import Task from '../components/Task';
 import AddTask from './AddTask';
+
+const initialState = {
+  showDoneTasks: true,
+  showAddTask: false,
+  visibleTasks: [],
+  tasks: [],
+};
 
 export default class TaskList extends Component {
   state = {
@@ -47,8 +55,10 @@ export default class TaskList extends Component {
     this.setState({tasks, showAddTask: false}, this.filterTasks);
   };
 
-  componentDidMount = () => {
-    this.filterTasks();
+  componentDidMount = async () => {
+    const stateString = await AsyncStorage.getItem('tasks');
+    const state = JSON.parse(stateString) || initialState;
+    this.setState(state, this.filterTasks);
   };
 
   toggleFilter = () => {
@@ -64,6 +74,7 @@ export default class TaskList extends Component {
       visibleTasks = this.state.tasks.filter(pending);
     }
     this.setState({visibleTasks});
+    AsyncStorage.setItem('tasks', JSON.stringify(this.state));
   };
 
   toggleTask = taskId => {
